@@ -10,6 +10,8 @@ export const App: React.FC = () => {
   const [usdCourseSell, setUsdCourseSell] = useState<number>(0);
   const [eurCourseBuy, setEurCourseBuy] = useState<number>(0);
   const [eurCourseSell, setEurCourseSell] = useState<number>(0);
+  const [eurUsdBuy, setEurUsdBuy] = useState<number>(0);
+  const [eurUsdSell, setEurUsdSell] = useState<number>(0);
 
   useEffect(() => {
     const newCourse = async () => {
@@ -17,6 +19,12 @@ export const App: React.FC = () => {
 
       const euroRate = currentCourse[1];
       const usdRate = currentCourse[0];
+      const eurUsdRate = currentCourse[2];
+
+      if (eurUsdRate) {
+        setEurUsdBuy(+eurUsdRate.rateBuy);
+        setEurUsdSell(+eurUsdRate.rateSell);
+      }
 
       if (euroRate) {
         setEurCourseBuy(+euroRate.rateBuy);
@@ -47,6 +55,8 @@ export const App: React.FC = () => {
         usdSell={usdCourseSell}
         eurBuy={eurCourseBuy}
         eurSell={eurCourseSell}
+        eurUsdBuy={eurUsdBuy}
+        eurUsdSell={eurUsdSell}
       />
     </div>
   );

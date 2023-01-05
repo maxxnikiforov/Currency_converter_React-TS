@@ -1,4 +1,4 @@
-interface Privat {
+interface MONO {
   'ccy': string,
   'base_ccy': string,
   'rateBuy': string,
