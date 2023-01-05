@@ -6,6 +6,8 @@ type Props = {
   usdSell: number;
   eurBuy: number;
   eurSell: number;
+  eurUsdBuy: number;
+  eurUsdSell: number;
 };
 
 export const Converter: React.FC <Props> = ({
@@ -13,6 +15,8 @@ export const Converter: React.FC <Props> = ({
   usdSell,
   eurBuy,
   eurSell,
+  eurUsdBuy,
+  eurUsdSell,
 }) => {
   const [operation, setOperation] = useState<string>('sell');
   const [amount, setAmount] = useState<number>(0);
@@ -31,6 +35,39 @@ export const Converter: React.FC <Props> = ({
 
   const chooseChangeTo = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setChangeTo(event.target.value);
+  };
+
+  const convert = () => {
+    if (operation === 'buy') {
+      if (yourCurrency === 'UAH') {
+        if (changeTo === 'USD') {
+          setConvertedSum(+(amount / usdSell).toFixed(2));
+        } else {
+          setConvertedSum(amount / eurSell);
+        }
+      }
+
+      if (yourCurrency === 'USD') {
+        if (changeTo === 'UAH') {
+          setConvertedSum(amount * usdBuy);
+        } else {
+          setConvertedSum(amount / eurUsdSell);
+        }
+      }
+
+      if (yourCurrency === 'EUR') {
+        if (changeTo === 'UAH') {
+          setConvertedSum(amount * eurBuy);
+        } else {
+          setConvertedSum(amount * eurUsdBuy);
+        }
+      }
+    }
+  };
+
+  const input = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(+event.target.value);
+    convert();
   };
 
   return (
@@ -55,7 +92,11 @@ export const Converter: React.FC <Props> = ({
               type="number"
               className="converter__input"
               value={amount.toString().replace(/^0+/, '')}
-              onChange={(event) => setAmount(+event.target.value)}
+              // onChange={(event) => {
+              //   setAmount(+event.target.value);
+              //   convert();
+              // }}
+              onChange={input}
               placeholder="write your amount"
             />
           </div>
