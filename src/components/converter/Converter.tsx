@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useState } from 'react';
 import './Converter.scss';
 
@@ -64,6 +65,8 @@ export const Converter: React.FC <Props> = ({
       }
     }
   };
+
+  console.log(amount, convertedSum);
 
   const input = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(+event.target.value);
