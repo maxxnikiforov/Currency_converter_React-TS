@@ -44,7 +44,7 @@ export const Converter: React.FC <Props> = ({
         if (changeTo === 'USD') {
           setConvertedSum(+(amount / usdSell).toFixed(2));
         } else {
-          setConvertedSum(amount / eurSell);
+          setConvertedSum(+(amount / eurSell).toFixed(2));
         }
       }
 
