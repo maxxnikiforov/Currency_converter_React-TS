@@ -1,102 +1,122 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Exchange, Currency, Operation } from '../../type/types';
 import './Converter.scss';
 
 type Props = {
-  usdBuy: number;
-  usdSell: number;
-  eurBuy: number;
-  eurSell: number;
-  eurUsdBuy: number;
-  eurUsdSell: number;
+  mono: Exchange | null;
 };
 
-export const Converter: React.FC <Props> = ({
-  usdBuy,
-  usdSell,
-  eurBuy,
-  eurSell,
-  eurUsdBuy,
-  eurUsdSell,
+export const ConverterComponent: React.FC <Props> = ({
+  mono,
 }) => {
-  const [operation, setOperation] = useState<string>('sell');
-  const [amount, setAmount] = useState<number>(0);
-  // const [yourSum, setYourSum] = useState<number>(0);
-  const [yourCurrency, setYourCurrency] = useState<string>('UAH');
-  const [changeTo, setChangeTo] = useState<string>('USD');
-  const [convertedSum, setConvertedSum] = useState<number>(0);
+  const [operation, setOperation] = useState<Operation>('buy');
+  const [leftCur, setLeftCur] = useState<Currency>('UAH');
+  const [rightCur, setRightCur] = useState<Currency>('USD');
+  const [left, setLeft] = useState('');
+  const [right, setRight] = useState('');
+
+  const onChangeLeft = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRight('');
+    setLeft(e.target.value.replace(/[^0-9]/g, ''));
+    const k = mono ? mono[leftCur][rightCur][operation] : 1;
+
+    setRight((Number(e.target.value) * Number(k)).toFixed(2));
+  };
+
+  const onChangeRight = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLeft('');
+    setRight(e.target.value.replace(/[^0-9]/g, ''));
+    const k = mono ? mono[rightCur][leftCur][operation] : 1;
+
+    setLeft((Number(e.target.value) * Number(k)).toFixed(2));
+  };
 
   const changeOperation = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setOperation(event.target.value);
-  };
+    const { value } = event.target;
 
-  const chooseYourCurrency = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setYourCurrency(event.target.value);
-  };
-
-  const chooseChangeTo = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setChangeTo(event.target.value);
-  };
-
-  const convert = () => {
-    if (operation === 'buy') {
-      if (yourCurrency === 'UAH') {
-        if (changeTo === 'USD') {
-          setConvertedSum(+(amount / usdSell).toFixed(2));
-        } else {
-          setConvertedSum(amount / eurSell);
-        }
-      }
-
-      if (yourCurrency === 'USD') {
-        if (changeTo === 'UAH') {
-          setConvertedSum(amount * usdBuy);
-        } else {
-          setConvertedSum(amount / eurUsdSell);
-        }
-      }
-
-      if (yourCurrency === 'EUR') {
-        if (changeTo === 'UAH') {
-          setConvertedSum(amount * eurBuy);
-        } else {
-          setConvertedSum(amount * eurUsdBuy);
-        }
-      }
+    if (value === 'sell' || value === 'buy') {
+      setOperation(value);
     }
   };
 
-  const input = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(+event.target.value);
-    convert();
+  const onChangeLeftCurrency = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+
+    if (value === 'USD' || value === 'EUR' || value === 'UAH') {
+      setLeftCur(value);
+    }
   };
+
+  const onChangeRightCurrency = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+
+    if (value === 'USD' || value === 'EUR' || value === 'UAH') {
+      setRightCur(value);
+    }
+  };
+
+  const convertFromLeft = (
+    firstCur: Currency, secondCur: Currency, typeOperation: Operation, monoObj: Exchange | null,
+  ) => {
+    if (left && monoObj
+      && (leftCur === 'USD' || leftCur === 'EUR' || leftCur === 'UAH')
+      && (rightCur === 'USD' || rightCur === 'EUR' || rightCur === 'UAH')
+      && (typeOperation === 'buy' || typeOperation === 'sell')
+    ) {
+      const newRight = (+left)
+      * Number(monoObj[leftCur][rightCur][operation]);
+
+      setRight(newRight.toFixed(2));
+    }
+  };
+
+  const convertFromRight = (
+    firstCur: Currency, secondCur: Currency, typeOperation: Operation, monoObj: Exchange | null,
+  ) => {
+    if (right && monoObj
+      && (leftCur === 'USD' || leftCur === 'EUR' || leftCur === 'UAH')
+      && (rightCur === 'USD' || rightCur === 'EUR' || rightCur === 'UAH')
+      && (typeOperation === 'buy' || typeOperation === 'sell')
+    ) {
+      const newLeft = (+right) * Number(monoObj[rightCur][leftCur][operation]);
+
+      setLeft(newLeft.toFixed(2));
+    }
+  };
+
+  useEffect(() => {
+    convertFromLeft(leftCur, rightCur, operation, mono);
+  }, [leftCur, operation]);
+
+  useEffect(() => {
+    convertFromRight(leftCur, rightCur, operation, mono);
+  }, [rightCur, operation]);
 
   return (
     <div className="converter">
       <div className="converter__operation">
         <h3>Your operation</h3>
         <select
+          className="converter__select"
           name="operation"
           value={operation}
           onChange={changeOperation}
         >
-          <option value="sale">sale</option>
+          <option value="sell">sell</option>
           <option value="buy">buy</option>
         </select>
       </div>
+
       <section className="converter__inOutPut-container">
         <div className="converter__inPut-container">
           <div>
             <h4>Your Sum</h4>
             <input
               name="input"
-              type="number"
+              type="string"
               className="converter__input"
-              value={amount.toString().replace(/^0+/, '')}
-              // onChange={(event) => {
-              //   setAmount(+event.target.value);
-              //   convert();
-              // }}
-              onChange={input}
+              value={left}
+              onChange={onChangeLeft}
               placeholder="write your amount"
             />
           </div>
@@ -104,9 +124,10 @@ export const Converter: React.FC <Props> = ({
           <div className="converter__operation">
             <h4>Change from:</h4>
             <select
+              className="converter__select"
               name="operation"
-              value={yourCurrency}
-              onChange={chooseYourCurrency}
+              value={leftCur}
+              onChange={onChangeLeftCurrency}
             >
               <option value="UAH">UAH</option>
               <option value="USD">USD</option>
@@ -120,10 +141,10 @@ export const Converter: React.FC <Props> = ({
             <h4>Converted Sum</h4>
             <input
               name="input"
-              type="number"
+              type="string"
               className="converter__input"
-              value={convertedSum.toString().replace(/^0+/, '')}
-              onChange={(event) => setConvertedSum(+event.target.value)}
+              value={right}
+              onChange={onChangeRight}
               placeholder="converted amount"
             />
           </div>
@@ -131,9 +152,10 @@ export const Converter: React.FC <Props> = ({
           <div className="converter__operation">
             <h4>Change to:</h4>
             <select
+              className="converter__select"
               name="operation"
-              value={changeTo}
-              onChange={chooseChangeTo}
+              value={rightCur}
+              onChange={onChangeRightCurrency}
             >
               <option value="UAH">UAH</option>
               <option value="USD">USD</option>
@@ -142,10 +164,9 @@ export const Converter: React.FC <Props> = ({
           </div>
         </div>
       </section>
-      <p>{usdBuy}</p>
-      <p>{usdSell}</p>
-      <p>{eurBuy}</p>
-      <p>{eurSell}</p>
+
+      {leftCur === rightCur
+       && <p className="converter__alert">Please choose different currensies</p>}
     </div>
   );
 };

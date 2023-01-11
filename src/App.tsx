@@ -1,20 +1,67 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
 import { getRate } from './api';
 import { Header } from './components/header/Header';
-import { Converter } from './components/converter/Converter';
+import { ConverterComponent } from './components/converter/Converter';
+import { Exchange } from './type/types';
 import './App.scss';
 
 export const App: React.FC = () => {
-  const [usdCourseBuy, setUsdCourseBuy] = useState<number>(0);
-  const [usdCourseSell, setUsdCourseSell] = useState<number>(0);
-  const [eurCourseBuy, setEurCourseBuy] = useState<number>(0);
-  const [eurCourseSell, setEurCourseSell] = useState<number>(0);
-  const [eurUsdBuy, setEurUsdBuy] = useState<number>(0);
-  const [eurUsdSell, setEurUsdSell] = useState<number>(0);
+  const [mono, setMono] = useState<Exchange | null>(null);
 
   useEffect(() => {
     const newCourse = async () => {
+      const monoInitial: Exchange = {
+        USD: {
+          USD: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          EUR: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          UAH: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+        },
+        EUR: {
+          USD: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          EUR: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          UAH: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+        },
+        UAH: {
+          USD: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          EUR: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+          UAH: {
+            buy: 'no data',
+            sell: 'no data',
+          },
+        },
+      };
+
+      monoInitial.EUR.EUR.buy = 1;
+      monoInitial.EUR.EUR.sell = 1;
+      monoInitial.USD.USD.buy = 1;
+      monoInitial.USD.USD.sell = 1;
+      monoInitial.UAH.UAH.buy = 1;
+      monoInitial.UAH.UAH.sell = 1;
+
       const currentCourse = await getRate();
 
       const euroRate = currentCourse[1];
@@ -22,21 +69,27 @@ export const App: React.FC = () => {
       const eurUsdRate = currentCourse[2];
 
       if (eurUsdRate) {
-        setEurUsdBuy(+eurUsdRate.rateBuy);
-        setEurUsdSell(+eurUsdRate.rateSell);
+        monoInitial.EUR.USD.buy = +eurUsdRate.rateBuy;
+        monoInitial.USD.EUR.sell = 1 / (+eurUsdRate.rateBuy);
+        monoInitial.EUR.USD.sell = +eurUsdRate.rateSell;
+        monoInitial.USD.EUR.buy = 1 / (+eurUsdRate.rateSell);
       }
 
       if (euroRate) {
-        setEurCourseBuy(+euroRate.rateBuy);
-        setEurCourseSell(+euroRate.rateSell);
+        monoInitial.EUR.UAH.buy = +euroRate.rateBuy;
+        monoInitial.UAH.EUR.sell = 1 / (+euroRate.rateBuy);
+        monoInitial.EUR.UAH.sell = +euroRate.rateSell;
+        monoInitial.UAH.EUR.buy = 1 / (+euroRate.rateSell);
       }
 
       if (usdRate) {
-        setUsdCourseBuy(+usdRate.rateBuy);
-        setUsdCourseSell(+usdRate.rateSell);
+        monoInitial.USD.UAH.buy = +usdRate.rateBuy;
+        monoInitial.UAH.USD.sell = 1 / (+usdRate.rateBuy);
+        monoInitial.USD.UAH.sell = +usdRate.rateSell;
+        monoInitial.UAH.USD.buy = 1 / (+usdRate.rateSell);
       }
 
-      console.log(currentCourse, usdCourseBuy);
+      setMono(monoInitial);
     };
 
     newCourse();
@@ -45,18 +98,13 @@ export const App: React.FC = () => {
   return (
     <div className="app">
       <Header
-        usdBuy={usdCourseBuy}
-        usdSell={usdCourseSell}
-        eurBuy={eurCourseBuy}
-        eurSell={eurCourseSell}
+        usdBuy={mono ? +(mono.USD.UAH.buy) : 0}
+        usdSell={mono ? +(mono.USD.UAH.sell) : 0}
+        eurBuy={mono ? +(mono.EUR.UAH.buy) : 0}
+        eurSell={mono ? +(mono.EUR.UAH.sell) : 0}
       />
-      <Converter
-        usdBuy={usdCourseBuy}
-        usdSell={usdCourseSell}
-        eurBuy={eurCourseBuy}
-        eurSell={eurCourseSell}
-        eurUsdBuy={eurUsdBuy}
-        eurUsdSell={eurUsdSell}
+      <ConverterComponent
+        mono={mono}
       />
     </div>
   );

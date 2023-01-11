@@ -1,6 +1,6 @@
 interface MONO {
-  'ccy': string,
-  'base_ccy': string,
+  'currencyCodeA': number,
+  'currencyCodeB': number,
   'rateBuy': string,
   'rateSell': string,
 }
